@@ -8,6 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "Delay.h"
 
 //==============================================================================
 SimpleDelayAudioProcessor::SimpleDelayAudioProcessor()
@@ -156,6 +157,7 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 
         // ..do something to the data...
     }
+
 }
 
 //==============================================================================
