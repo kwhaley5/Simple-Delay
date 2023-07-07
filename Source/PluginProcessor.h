@@ -61,6 +61,11 @@ public:
 
 private:
 
+    juce::AudioBuffer<float> delayBuffer;
+    int bufferIndex{ 0 };
+
+    float rmsLevelLeft, rmsLevelRight, rmsOutLevelLeft, rmsOutLevelRight;
+
     juce::AudioParameterFloat* freq{ nullptr };
     juce::AudioParameterFloat* feedback{ nullptr };
     juce::AudioParameterFloat* dryWet{ nullptr };

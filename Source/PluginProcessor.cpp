@@ -94,8 +94,9 @@ void SimpleDelayAudioProcessor::changeProgramName (int index, const juce::String
 //==============================================================================
 void SimpleDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    //create the circular buffersize and assign it to the delaybuffer
+    auto bufferSize = sampleRate * 3.0;
+    delayBuffer.setSize(getNumOutputChannels(), static_cast<int>(bufferSize));
 }
 
 void SimpleDelayAudioProcessor::releaseResources()
@@ -136,26 +137,63 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
+    freq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Frequency"));
+
+    rmsLevelLeft = juce::Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
+    rmsLevelRight = juce::Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
+
+    //added to fix graphical bug, rms levels when no music was playing was below -60
+    if (rmsLevelLeft < -60) {
+        rmsLevelLeft = -60;
+    }
+    if (rmsLevelRight < -60) {
+        rmsLevelRight = -60;
+    }
+
+    
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
+    
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
 
-        // ..do something to the data...
+        if (delayBuffer.getNumSamples() > buffer.getNumSamples() + bufferIndex)
+        {
+            delayBuffer.copyFrom(channel, bufferIndex, channelData, buffer.getNumSamples());
+        }
+        else 
+        {
+            auto samplesLeft = delayBuffer.getNumSamples() - bufferIndex;
+            delayBuffer.copyFrom(channel, bufferIndex, channelData, samplesLeft);
+            auto remainingSamples = buffer.getNumSamples() - samplesLeft;
+            delayBuffer.copyFrom(channel, 0, channelData + samplesLeft, remainingSamples); //add the plus samples Left to make sure you get the remaining samples. 
+
+            auto readPosition = bufferIndex - (ceil(getSampleRate() * *freq / 1000));
+
+            if (readPosition < 0) //makes sure we loop back around
+            {
+                readPosition += delayBuffer.getNumSamples();
+            }
+
+            //NEXT STEP: do the same above, to loop back around the circular buffer
+        }
+    }
+
+    bufferIndex += buffer.getNumSamples();
+    bufferIndex %= delayBuffer.getNumSamples(); //if delay buffer > then buffer index, the remainder is just the original index, but if index is bigger, it will allow it to wrap around
+
+    //will probably change this because that doesn't make as much sense as is
+    rmsOutLevelLeft = juce::Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
+    rmsOutLevelRight = juce::Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
+
+    //added to fix graphical bug, rms levels when no music was playing was below -60
+    if (rmsOutLevelLeft < -60) {
+        rmsOutLevelLeft = -60;
+    }
+    if (rmsOutLevelRight < -60) {
+        rmsOutLevelRight = -60;
     }
 
 }
