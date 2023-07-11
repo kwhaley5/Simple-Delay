@@ -23,6 +23,7 @@ SimpleDelayAudioProcessor::SimpleDelayAudioProcessor()
                        )
 #endif
 {
+    
 }
 
 SimpleDelayAudioProcessor::~SimpleDelayAudioProcessor()
@@ -137,7 +138,7 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    freq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Frequency"));
+    //freq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Frequency"));
 
     rmsLevelLeft = juce::Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
     rmsLevelRight = juce::Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
@@ -159,26 +160,11 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     {
         auto* channelData = buffer.getWritePointer (channel);
 
-        if (delayBuffer.getNumSamples() > buffer.getNumSamples() + bufferIndex)
-        {
-            delayBuffer.copyFrom(channel, bufferIndex, channelData, buffer.getNumSamples());
-        }
-        else 
-        {
-            auto samplesLeft = delayBuffer.getNumSamples() - bufferIndex;
-            delayBuffer.copyFrom(channel, bufferIndex, channelData, samplesLeft);
-            auto remainingSamples = buffer.getNumSamples() - samplesLeft;
-            delayBuffer.copyFrom(channel, 0, channelData + samplesLeft, remainingSamples); //add the plus samples Left to make sure you get the remaining samples. 
-
-            auto readPosition = bufferIndex - (ceil(getSampleRate() * *freq / 1000));
-
-            if (readPosition < 0) //makes sure we loop back around
-            {
-                readPosition += delayBuffer.getNumSamples();
-            }
-
-            //NEXT STEP: do the same above, to loop back around the circular buffer
-        }
+        fillBuffer(buffer, channel, channelData);
+        playBuffer(buffer, channel);
+        fillBuffer(buffer, channel, channelData);
+        
+        
     }
 
     bufferIndex += buffer.getNumSamples();
@@ -196,6 +182,42 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         rmsOutLevelRight = -60;
     }
 
+}
+
+void SimpleDelayAudioProcessor::fillBuffer(juce::AudioBuffer<float>& buffer, int channel, float *channelData)
+{
+    if (delayBuffer.getNumSamples() > buffer.getNumSamples() + bufferIndex)
+    {
+        delayBuffer.copyFrom(channel, bufferIndex, channelData, buffer.getNumSamples());
+    }
+    else
+    {
+        auto samplesLeft = delayBuffer.getNumSamples() - bufferIndex;
+        delayBuffer.copyFrom(channel, bufferIndex, channelData, samplesLeft);
+        auto remainingSamples = buffer.getNumSamples() - samplesLeft;
+        delayBuffer.copyFrom(channel, 0, channelData + samplesLeft, remainingSamples); //add the plus samples Left to make sure you get the remaining samples. 
+    }
+}
+
+void SimpleDelayAudioProcessor::playBuffer(juce::AudioBuffer<float>& buffer, int channel)
+{
+    auto freq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Frequency"));
+    auto readPosition = bufferIndex - getSampleRate(); //(ceil(getSampleRate() * *freq / 1000)); //breaking the code, reading bad spot
+
+    if (readPosition < 0) //makes sure we loop back around
+    {
+        readPosition += delayBuffer.getNumSamples();
+    }
+
+    if (readPosition + buffer.getNumSamples() < delayBuffer.getNumSamples()) {
+        buffer.addFromWithRamp(channel, 0, delayBuffer.getReadPointer(channel, readPosition), buffer.getNumSamples(), .7f, .7f);
+    }
+    else {
+        auto samplesLeft = delayBuffer.getNumSamples() - readPosition;
+        buffer.addFromWithRamp(channel, 0, delayBuffer.getReadPointer(channel, readPosition), samplesLeft, .7f, .7f);
+        auto remainingSamples = buffer.getNumSamples() - samplesLeft;
+        buffer.addFromWithRamp(channel, samplesLeft, delayBuffer.getReadPointer(channel, 0), remainingSamples, .7f, .7f);
+    }
 }
 
 //==============================================================================
