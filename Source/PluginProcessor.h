@@ -55,15 +55,15 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-    void fillBuffer(juce::AudioBuffer<float>& buffer, int channel, float* channelData);
-    void playBuffer(juce::AudioBuffer<float>& buffer, int channel);
-
+   
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "parameters", createParameterLayout() };
 
+    int sample;
+
 private:
 
-    juce::AudioBuffer<float> delayBuffer;
+    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLine;
     int bufferIndex{ 0 };
 
     float rmsLevelLeft, rmsLevelRight, rmsOutLevelLeft, rmsOutLevelRight;

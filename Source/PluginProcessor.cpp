@@ -96,8 +96,15 @@ void SimpleDelayAudioProcessor::changeProgramName (int index, const juce::String
 void SimpleDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     //create the circular buffersize and assign it to the delaybuffer
-    auto bufferSize = sampleRate * 3.0;
-    delayBuffer.setSize(getNumOutputChannels(), static_cast<int>(bufferSize));
+    juce::dsp::ProcessSpec spec;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumOutputChannels();
+    spec.sampleRate = sampleRate;
+
+    delayLine.reset();
+    delayLine.prepare(spec);
+    delayLine.setMaximumDelayInSamples(sampleRate*3);
+    //delayLine.setDelay(24000);
 }
 
 void SimpleDelayAudioProcessor::releaseResources()
@@ -113,10 +120,7 @@ bool SimpleDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
     juce::ignoreUnused (layouts);
     return true;
   #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
+
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
      && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
@@ -138,8 +142,6 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    //freq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Frequency"));
-
     rmsLevelLeft = juce::Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
     rmsLevelRight = juce::Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
 
@@ -155,22 +157,26 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    
+    auto freq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("freq"));
+    auto feedback = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("feedback"));
+    auto delayTime = (*freq/1000) * getSampleRate();
+    delayLine.setDelay(delayTime);
+
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-        auto* channelData = buffer.getWritePointer (channel);
+        auto* inSamples = buffer.getReadPointer (channel);
+        auto* outSamples = buffer.getWritePointer(channel);
 
-        fillBuffer(buffer, channel, channelData);
-        playBuffer(buffer, channel);
-        fillBuffer(buffer, channel, channelData);
-        
+        for (int i = 0; i < buffer.getNumSamples(); i++)
+        {
+            auto delayedSample = delayLine.popSample(channel);
+            auto inDelay = inSamples[i] + *feedback * delayedSample;
+            delayLine.pushSample(channel, inDelay);
+            outSamples[i] = inSamples[i] + delayedSample;
+        }
         
     }
 
-    bufferIndex += buffer.getNumSamples();
-    bufferIndex %= delayBuffer.getNumSamples(); //if delay buffer > then buffer index, the remainder is just the original index, but if index is bigger, it will allow it to wrap around
-
-    //will probably change this because that doesn't make as much sense as is
     rmsOutLevelLeft = juce::Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
     rmsOutLevelRight = juce::Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
 
@@ -182,42 +188,6 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         rmsOutLevelRight = -60;
     }
 
-}
-
-void SimpleDelayAudioProcessor::fillBuffer(juce::AudioBuffer<float>& buffer, int channel, float *channelData)
-{
-    if (delayBuffer.getNumSamples() > buffer.getNumSamples() + bufferIndex)
-    {
-        delayBuffer.copyFrom(channel, bufferIndex, channelData, buffer.getNumSamples());
-    }
-    else
-    {
-        auto samplesLeft = delayBuffer.getNumSamples() - bufferIndex;
-        delayBuffer.copyFrom(channel, bufferIndex, channelData, samplesLeft);
-        auto remainingSamples = buffer.getNumSamples() - samplesLeft;
-        delayBuffer.copyFrom(channel, 0, channelData + samplesLeft, remainingSamples); //add the plus samples Left to make sure you get the remaining samples. 
-    }
-}
-
-void SimpleDelayAudioProcessor::playBuffer(juce::AudioBuffer<float>& buffer, int channel)
-{
-    auto freq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Frequency"));
-    auto readPosition = bufferIndex - getSampleRate(); //(ceil(getSampleRate() * *freq / 1000)); //breaking the code, reading bad spot
-
-    if (readPosition < 0) //makes sure we loop back around
-    {
-        readPosition += delayBuffer.getNumSamples();
-    }
-
-    if (readPosition + buffer.getNumSamples() < delayBuffer.getNumSamples()) {
-        buffer.addFromWithRamp(channel, 0, delayBuffer.getReadPointer(channel, readPosition), buffer.getNumSamples(), .7f, .7f);
-    }
-    else {
-        auto samplesLeft = delayBuffer.getNumSamples() - readPosition;
-        buffer.addFromWithRamp(channel, 0, delayBuffer.getReadPointer(channel, readPosition), samplesLeft, .7f, .7f);
-        auto remainingSamples = buffer.getNumSamples() - samplesLeft;
-        buffer.addFromWithRamp(channel, samplesLeft, delayBuffer.getReadPointer(channel, 0), remainingSamples, .7f, .7f);
-    }
 }
 
 //==============================================================================
