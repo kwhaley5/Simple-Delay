@@ -29,9 +29,11 @@ private:
     // access the processor object that created it.
     SimpleDelayAudioProcessor& audioProcessor;
 
-    juce::Slider freq, feedback, dryWet;
+    juce::Slider freqLeft, freqRight, feedback, dryWet;
+    juce::ToggleButton link;
 
-    juce::AudioProcessorValueTreeState::SliderAttachment freqAT, feedbackAT, dryWetAT;
+    juce::AudioProcessorValueTreeState::SliderAttachment freqLeftAT, freqRightAT, feedbackAT, dryWetAT;
+    juce::AudioProcessorValueTreeState::ButtonAttachment linkAT;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleDelayAudioProcessorEditor)
 };

@@ -11,14 +11,19 @@
 
 //==============================================================================
 SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor(SimpleDelayAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p), freqAT(audioProcessor.apvts, "freq", freq),
-    feedbackAT(audioProcessor.apvts, "feedback", feedback), dryWetAT(audioProcessor.apvts, "dryWet", dryWet)
+    : AudioProcessorEditor(&p), audioProcessor(p), freqLeftAT(audioProcessor.apvts, "freqLeft", freqLeft),
+    freqRightAT(audioProcessor.apvts, "freqRight", freqRight), feedbackAT(audioProcessor.apvts, "feedback", feedback), 
+    dryWetAT(audioProcessor.apvts, "dryWet", dryWet), linkAT(audioProcessor.apvts, "link", link)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    freq.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    freq.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 100, 20);
-    addAndMakeVisible(freq);
+    freqLeft.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    freqLeft.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 100, 20);
+    addAndMakeVisible(freqLeft);
+
+    freqRight.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    freqRight.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 100, 20);
+    addAndMakeVisible(freqRight);
 
     feedback.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     feedback.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 100, 20);
@@ -28,7 +33,10 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor(SimpleDelayAudi
     dryWet.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 100, 20);
     addAndMakeVisible(dryWet);
 
-    setSize (400, 300);
+    link.setToggleState(true, juce::dontSendNotification);
+    addAndMakeVisible(link);
+
+    setSize (400, 400);
 }
 
 SimpleDelayAudioProcessorEditor::~SimpleDelayAudioProcessorEditor()
@@ -53,12 +61,27 @@ void SimpleDelayAudioProcessorEditor::resized()
 
     auto bounds = getLocalBounds();
 
-    auto freqBounds = bounds.removeFromLeft(bounds.getWidth() * .33);
-    freq.setBounds(freqBounds);
+    auto freqLeftBounds = bounds.removeFromLeft(bounds.getWidth() * .4);
+    freqLeftBounds = freqLeftBounds.removeFromTop(bounds.getHeight() * .5);
+    freqLeft.setBounds(freqLeftBounds);
 
+    auto freqRightBounds = bounds.removeFromRight(bounds.getWidth() * .66);
+    freqRightBounds = freqRightBounds.removeFromTop(bounds.getHeight() * .5);
+    freqRight.setBounds(freqRightBounds);
+
+    auto linkBounds = bounds.removeFromRight(bounds.getWidth());
+    linkBounds = linkBounds.removeFromTop(bounds.getHeight() * .5);
+    link.setBounds(linkBounds);
+    //link.setCentreRelative(.5f, .5f);
+
+    bounds = getLocalBounds();
+    
     auto feedbackBounds = bounds.removeFromLeft(bounds.getWidth() * .5);
+    feedbackBounds = feedbackBounds.removeFromBottom(bounds.getHeight() * .5);
     feedback.setBounds(feedbackBounds);
 
     auto dryWetBounds = bounds.removeFromLeft(bounds.getWidth());
+    dryWetBounds = dryWetBounds.removeFromBottom(bounds.getHeight() * .5);
     dryWet.setBounds(dryWetBounds);
+
 }

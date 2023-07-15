@@ -33,6 +33,8 @@ public:
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
+    void createDelay(int channel, juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> &delayLine, juce::AudioBuffer<float>& buffer);
+
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -59,18 +61,18 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "parameters", createParameterLayout() };
 
-    int sample;
-
 private:
 
     juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLine;
-    int bufferIndex{ 0 };
+    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLineRight;
 
     float rmsLevelLeft, rmsLevelRight, rmsOutLevelLeft, rmsOutLevelRight;
 
-    juce::AudioParameterFloat* freq{ nullptr };
+    juce::AudioParameterFloat* freqLeft{ nullptr };
+    juce::AudioParameterFloat* freqRight{nullptr};
     juce::AudioParameterFloat* feedback{ nullptr };
     juce::AudioParameterFloat* dryWet{ nullptr };
+    juce::AudioParameterBool* link{nullptr};
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleDelayAudioProcessor)
 };

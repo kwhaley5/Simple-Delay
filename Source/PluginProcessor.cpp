@@ -23,9 +23,11 @@ SimpleDelayAudioProcessor::SimpleDelayAudioProcessor()
                        )
 #endif
 {
-    freq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("freq"));
+    freqLeft = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("freqLeft"));
+    freqRight = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("freqRight"));
     feedback = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("feedback"));
     dryWet = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("dryWet"));
+    link = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("link"));
 }
 
 SimpleDelayAudioProcessor::~SimpleDelayAudioProcessor()
@@ -106,7 +108,11 @@ void SimpleDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     delayLine.reset();
     delayLine.prepare(spec);
     delayLine.setMaximumDelayInSamples(sampleRate*3);
-    //delayLine.setDelay(24000);
+
+    delayLineRight.reset();
+    delayLineRight.prepare(spec);
+    delayLineRight.setMaximumDelayInSamples(sampleRate * 3);
+
 }
 
 void SimpleDelayAudioProcessor::releaseResources()
@@ -159,23 +165,11 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    auto delayTime = (freq->get()/1000) * getSampleRate();
-    delayLine.setDelay(delayTime);
+    createDelay(0, delayLine, buffer);
+    createDelay(1, delayLineRight, buffer);
 
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* inSamples = buffer.getReadPointer (channel);
-        auto* outSamples = buffer.getWritePointer(channel);
-
-        for (int i = 0; i < buffer.getNumSamples(); i++)
-        {
-            auto delayedSample = delayLine.popSample(channel);
-            auto inDelay = inSamples[i] + feedback->get() * delayedSample;
-            delayLine.pushSample(channel, inDelay);
-            outSamples[i] = (inSamples[i] * (1-dryWet->get())) + (delayedSample * dryWet->get());
-        }
-        
-    }
+    auto checkLeft = delayLine.getDelay();
+    auto checkRight = delayLineRight.getDelay();
 
     rmsOutLevelLeft = juce::Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
     rmsOutLevelRight = juce::Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
@@ -190,6 +184,31 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 
 }
 
+void SimpleDelayAudioProcessor::createDelay(int channel, juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> &delayLine, juce::AudioBuffer<float>& buffer)
+{
+    auto delayTime = 0;
+
+    if (channel == 0) {
+        delayTime = (freqLeft->get() / 1000) * getSampleRate();
+    }
+    else {
+        delayTime = (freqRight->get() / 1000) * getSampleRate();
+    }
+
+    delayLine.setDelay(delayTime);
+
+    auto* inSamples = buffer.getReadPointer(channel);
+    auto* outSamples = buffer.getWritePointer(channel);
+
+    for (int i = 0; i < buffer.getNumSamples(); i++)
+    {
+        auto delayedSample = delayLine.popSample(channel);
+        auto inDelay = inSamples[i] + feedback->get() * delayedSample;
+        delayLine.pushSample(channel, inDelay);
+        outSamples[i] = (inSamples[i] * (1 - dryWet->get())) + (delayedSample * dryWet->get());
+    }
+}
+
 //==============================================================================
 bool SimpleDelayAudioProcessor::hasEditor() const
 {
@@ -199,6 +218,7 @@ bool SimpleDelayAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* SimpleDelayAudioProcessor::createEditor()
 {
     return new SimpleDelayAudioProcessorEditor (*this);
+    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -226,9 +246,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleDelayAudioProcessor::c
     auto feedbackRange = NormalisableRange<float>(.01, 1, .01, 1);
     auto dryWetRange = NormalisableRange<float>(.01, 1, .01, 1);
 
-    layout.add(std::make_unique<AudioParameterFloat>("freq", "Frequency", freqRange, 50));
+    layout.add(std::make_unique<AudioParameterFloat>("freqLeft", "Frequency Left", freqRange, 50));
+    layout.add(std::make_unique<AudioParameterFloat>("freqRight", "Frequency Right", freqRange, 50));
     layout.add(std::make_unique<AudioParameterFloat>("feedback", "Feedback", feedbackRange, .5));
     layout.add(std::make_unique<AudioParameterFloat>("dryWet", "Dry/Wet", dryWetRange, .5));
+    layout.add(std::make_unique<AudioParameterBool>("link", "Link", true));
 
     return layout;
 }
