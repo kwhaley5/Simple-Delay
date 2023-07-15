@@ -15,8 +15,9 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor(SimpleDelayAudi
     freqRightAT(audioProcessor.apvts, "freqRight", freqRight), feedbackAT(audioProcessor.apvts, "feedback", feedback), 
     dryWetAT(audioProcessor.apvts, "dryWet", dryWet), linkAT(audioProcessor.apvts, "link", link)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
+    setLookAndFeel(&laf);
+
+
     freqLeft.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     freqLeft.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 100, 20);
     addAndMakeVisible(freqLeft);
@@ -34,6 +35,7 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor(SimpleDelayAudi
     addAndMakeVisible(dryWet);
 
     link.setToggleState(true, juce::dontSendNotification);
+    link.setButtonText("Link");
     addAndMakeVisible(link);
 
     setSize (400, 400);
@@ -70,7 +72,8 @@ void SimpleDelayAudioProcessorEditor::resized()
     freqRight.setBounds(freqRightBounds);
 
     auto linkBounds = bounds.removeFromRight(bounds.getWidth());
-    linkBounds = linkBounds.removeFromTop(bounds.getHeight() * .5);
+    linkBounds = linkBounds.removeFromTop(bounds.getHeight() * .4);
+    linkBounds = linkBounds.removeFromBottom(bounds.getHeight() * .2);
     link.setBounds(linkBounds);
     //link.setCentreRelative(.5f, .5f);
 

@@ -168,9 +168,6 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     createDelay(0, delayLine, buffer);
     createDelay(1, delayLineRight, buffer);
 
-    auto checkLeft = delayLine.getDelay();
-    auto checkRight = delayLineRight.getDelay();
-
     rmsOutLevelLeft = juce::Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
     rmsOutLevelRight = juce::Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
 
@@ -187,6 +184,10 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 void SimpleDelayAudioProcessor::createDelay(int channel, juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> &delayLine, juce::AudioBuffer<float>& buffer)
 {
     auto delayTime = 0;
+
+    if (link->get() == true) {
+        freqLeft = freqRight;
+    }
 
     if (channel == 0) {
         delayTime = (freqLeft->get() / 1000) * getSampleRate();
