@@ -23,7 +23,9 @@ SimpleDelayAudioProcessor::SimpleDelayAudioProcessor()
                        )
 #endif
 {
-    
+    freq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("freq"));
+    feedback = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("feedback"));
+    dryWet = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("dryWet"));
 }
 
 SimpleDelayAudioProcessor::~SimpleDelayAudioProcessor()
@@ -157,9 +159,7 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    auto freq = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("freq"));
-    auto feedback = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("feedback"));
-    auto delayTime = (*freq/1000) * getSampleRate();
+    auto delayTime = (freq->get()/1000) * getSampleRate();
     delayLine.setDelay(delayTime);
 
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
@@ -170,9 +170,9 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         for (int i = 0; i < buffer.getNumSamples(); i++)
         {
             auto delayedSample = delayLine.popSample(channel);
-            auto inDelay = inSamples[i] + *feedback * delayedSample;
+            auto inDelay = inSamples[i] + feedback->get() * delayedSample;
             delayLine.pushSample(channel, inDelay);
-            outSamples[i] = inSamples[i] + delayedSample;
+            outSamples[i] = (inSamples[i] * (1-dryWet->get())) + (delayedSample * dryWet->get());
         }
         
     }
@@ -204,15 +204,16 @@ juce::AudioProcessorEditor* SimpleDelayAudioProcessor::createEditor()
 //==============================================================================
 void SimpleDelayAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    juce::MemoryOutputStream mos(destData, true);
+    apvts.state.writeToStream(mos);
 }
 
 void SimpleDelayAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
+    if (tree.isValid()) {
+        apvts.replaceState(tree);
+    }
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout SimpleDelayAudioProcessor::createParameterLayout()
