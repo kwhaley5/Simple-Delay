@@ -100,8 +100,14 @@ public:
             g.drawLine(shortLine.getX(), shortLine.getY(), thumbPoint.getX(), thumbPoint.getY(), lineW / 2);
             //g.drawLine(bounds.getCentreX(), bounds.getCentreY(), thumbPoint.getX(), thumbPoint.getY(), lineW / 2)
 
-
         }
+        
+    };
+
+    struct ButtonLink : public juce::ToggleButton, public juce::Button::Listener
+    {
+        void buttonClicked(juce::Button* button) override;
+
     };
 
     struct LevelMeter : juce::Component
@@ -148,7 +154,7 @@ private:
     LevelMeter outMeterR, outMeterL;
 
     juce::Slider freqLeft, freqRight, feedback, dryWet;
-    juce::TextButton link;
+    juce::ToggleButton link;
 
     juce::AudioProcessorValueTreeState::SliderAttachment freqLeftAT, freqRightAT, feedbackAT, dryWetAT;
     juce::AudioProcessorValueTreeState::ButtonAttachment linkAT;

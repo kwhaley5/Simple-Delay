@@ -181,13 +181,9 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 
 }
 
-void SimpleDelayAudioProcessor::createDelay(int channel, juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> &delayLine, juce::AudioBuffer<float>& buffer)
+void SimpleDelayAudioProcessor::createDelay(int channel, juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> &delayLine, juce::AudioBuffer<float>& buffer)
 {
     auto delayTime = 0;
-
-    if (link->get() == true) {
-        freqLeft = freqRight;
-    }
 
     if (channel == 0) {
         delayTime = (freqLeft->get() / 1000) * getSampleRate();
@@ -198,15 +194,23 @@ void SimpleDelayAudioProcessor::createDelay(int channel, juce::dsp::DelayLine<fl
 
     delayLine.setDelay(delayTime);
 
-    auto* inSamples = buffer.getReadPointer(channel);
-    auto* outSamples = buffer.getWritePointer(channel);
+    auto block = juce::dsp::AudioBlock<float>(buffer);
+    auto context = juce::dsp::ProcessContextReplacing<float>(block);
 
-    for (int i = 0; i < buffer.getNumSamples(); i++)
+    auto& inputBlock = context.getInputBlock();
+    auto& ouputBlock = context.getOutputBlock();
+    auto numSamples = ouputBlock.getNumSamples();
+
+    auto* input = inputBlock.getChannelPointer(channel);
+    auto* output = ouputBlock.getChannelPointer(channel);
+   
+
+    for (int i = 0; i < numSamples; i++)
     {
         auto delayedSample = delayLine.popSample(channel);
-        auto inDelay = inSamples[i] + feedback->get() * delayedSample;
+        auto inDelay = std::tanh(input[i] + feedback->get() * delayedSample);
         delayLine.pushSample(channel, inDelay);
-        outSamples[i] = (inSamples[i] * (1 - dryWet->get())) + (delayedSample * dryWet->get());
+        output[i] = (input[i] * (1 - dryWet->get())) + (delayedSample * dryWet->get());
     }
 }
 

@@ -38,11 +38,28 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor(SimpleDelayAudi
     link.setButtonText("Link");
     addAndMakeVisible(link);
 
+    freqLeft.onValueChange = [this]()
+    {
+        if (link.getToggleState()) {
+            freqRight.setValue(freqLeft.getValue());
+        }
+        else{}
+    };
+
+    freqRight.onValueChange = [this]()
+    {
+        if (link.getToggleState()) {
+            freqLeft.setValue(freqRight.getValue());
+        }
+        else {}
+    };
+
     setSize (400, 400);
 }
 
 SimpleDelayAudioProcessorEditor::~SimpleDelayAudioProcessorEditor()
 {
+    setLookAndFeel(nullptr);
 }
 
 //==============================================================================
@@ -86,5 +103,10 @@ void SimpleDelayAudioProcessorEditor::resized()
     auto dryWetBounds = bounds.removeFromLeft(bounds.getWidth());
     dryWetBounds = dryWetBounds.removeFromBottom(bounds.getHeight() * .5);
     dryWet.setBounds(dryWetBounds);
+
+}
+
+void SimpleDelayAudioProcessorEditor::ButtonLink::buttonClicked(juce::Button* button)
+{
 
 }
