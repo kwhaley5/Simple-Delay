@@ -113,6 +113,19 @@ void SimpleDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     delayLineRight.prepare(spec);
     delayLineRight.setMaximumDelayInSamples(sampleRate * 3);
 
+    for (auto& s : smoothedDelay)
+    {
+        s.reset(sampleRate, .05);
+        s.setCurrentAndTargetValue(.5);
+    }
+
+    auto filterCoe = juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(sampleRate, 200);
+    for (auto& f : filters)
+    {
+        f.prepare(spec);
+        f.coefficients = filterCoe;
+    }
+
 }
 
 void SimpleDelayAudioProcessor::releaseResources()
@@ -181,18 +194,22 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 
 }
 
-void SimpleDelayAudioProcessor::createDelay(int channel, juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> &delayLine, juce::AudioBuffer<float>& buffer)
+void SimpleDelayAudioProcessor::createDelay(int channel, juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> &delayLine, juce::AudioBuffer<float>& buffer)
 {
     auto delayTime = 0;
 
     if (channel == 0) {
-        delayTime = (freqLeft->get() / 1000) * getSampleRate();
+        smoothedDelay[channel].setTargetValue((freqLeft->get() / 1000));
+        //delayTime = (freqLeft->get() / 1000) * getSampleRate();
     }
     else {
-        delayTime = (freqRight->get() / 1000) * getSampleRate();
+        smoothedDelay[channel].setTargetValue((freqRight->get() / 1000));
+        //delayTime = (freqRight->get() / 1000) * getSampleRate();
     }
 
-    delayLine.setDelay(delayTime);
+    //delayLine.setDelay(delayTime);
+
+    auto& filter = filters[channel];
 
     auto block = juce::dsp::AudioBlock<float>(buffer);
     auto context = juce::dsp::ProcessContextReplacing<float>(block);
@@ -207,10 +224,12 @@ void SimpleDelayAudioProcessor::createDelay(int channel, juce::dsp::DelayLine<fl
 
     for (int i = 0; i < numSamples; i++)
     {
-        auto delayedSample = delayLine.popSample(channel);
+        auto nextDelayTime = smoothedDelay[channel].getNextValue() * getSampleRate();
+        auto delayedSample = filter.processSample(delayLine.popSample(channel, nextDelayTime));
         auto inDelay = std::tanh(input[i] + feedback->get() * delayedSample);
         delayLine.pushSample(channel, inDelay);
         output[i] = (input[i] * (1 - dryWet->get())) + (delayedSample * dryWet->get());
+        //output[i] = std::tanh(input[i] + dryWet->get() * delayedSample);
     }
 }
 

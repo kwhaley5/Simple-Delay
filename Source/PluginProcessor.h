@@ -33,7 +33,7 @@ public:
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
-    void createDelay(int channel, juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> &delayLine, juce::AudioBuffer<float>& buffer);
+    void createDelay(int channel, juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> &delayLine, juce::AudioBuffer<float>& buffer);
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -63,9 +63,10 @@ public:
 
 private:
 
-    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delayLine;
-    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd> delayLineRight;
-    //std::array<juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Lagrange3rd>, 2> delayLines;
+    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLine;
+    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLineRight;
+    std::array<juce::dsp::IIR::Filter<float>, 2> filters;
+    std::array < juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>, 2> smoothedDelay;
 
     float rmsLevelLeft, rmsLevelRight, rmsOutLevelLeft, rmsOutLevelRight;
 
