@@ -102,6 +102,43 @@ public:
             g.drawLine(shortLine.getX(), shortLine.getY(), thumbPoint.getX(), thumbPoint.getY(), lineW / 2);
             //g.drawLine(bounds.getCentreX(), bounds.getCentreY(), thumbPoint.getX(), thumbPoint.getY(), lineW / 2)
 
+            //Add text Values
+            auto str = String('none');
+            auto value = slider.getValue();
+            if (value < 1) {
+                value *= 100;
+                str = String(value);
+                str.append("%", 3);
+            }
+            else {
+                str = String(value);
+            }
+
+            auto strWidth = g.getCurrentFont().getStringWidth(str);
+
+            Rectangle<float> r;
+            r.setBottom(boundsFull.getBottom() - 10);
+            r.setLeft(boundsFull.getCentre().getX() - strWidth);
+            r.setRight(boundsFull.getCentre().getX() + strWidth);
+            r.setTop(boundsFull.getBottom() - 30);
+
+            //g.fillRoundedRectangle(r, 2);
+            g.setColour(Colours::red);
+            g.setFont(15);
+            g.drawFittedText(str, r.getX(), r.getY(), r.getWidth(), r.getHeight(), juce::Justification::centred, 1);
+
+            auto name = slider.getName();
+            strWidth = g.getCurrentFont().getStringWidth(name);
+            r.setTop(5);
+            r.setLeft(boundsFull.getCentre().getX() - strWidth);
+            r.setRight(boundsFull.getCentre().getX() + strWidth);
+            r.setBottom(25);
+            //g.fillRoundedRectangle(r, 2);
+            g.setColour(Colours::black);
+            g.drawFittedText(name, r.getX(), r.getY(), r.getWidth(), r.getHeight(), juce::Justification::centred, 1);
+            
+
+
         }
 
         void drawToggleButton(juce::Graphics& g, juce::ToggleButton& button,
@@ -112,6 +149,8 @@ public:
             auto rectWidth = getFont.getStringWidthFloat(button.getButtonText());
 
             juce::Rectangle<float> r;
+
+            //Tweak this when you make your cutsom LNF headers and cpp files
             r.setSize(juce::jmax(20.f, rectWidth * 1.75f), fontSize * 1.2);
             r.translate((button.getWidth() / 2 - rectWidth*.85f), (button.getHeight() / 2 - fontSize / 2 -1.f));
 

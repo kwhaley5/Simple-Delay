@@ -30,18 +30,22 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor(SimpleDelayAudi
 
     freqLeft.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     freqLeft.setTextBoxStyle(juce::Slider::NoTextBox, false, 100, 20);
+    freqLeft.setName("Time");
     addAndMakeVisible(freqLeft);
 
     freqRight.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     freqRight.setTextBoxStyle(juce::Slider::NoTextBox, false, 100, 20);
+    freqRight.setName("Time");
     addAndMakeVisible(freqRight);
 
     feedback.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     feedback.setTextBoxStyle(juce::Slider::NoTextBox, false, 100, 20);
+    feedback.setName("Feedback");
     addAndMakeVisible(feedback);
 
     dryWet.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     dryWet.setTextBoxStyle(juce::Slider::NoTextBox, false, 100, 20);
+    dryWet.setName("Dry/Wet");
     addAndMakeVisible(dryWet);
 
     link.setToggleState(true, juce::dontSendNotification);

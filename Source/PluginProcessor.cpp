@@ -110,7 +110,7 @@ void SimpleDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     {
         dl.reset();
         dl.prepare(spec);
-        dl.setMaximumDelayInSamples(sampleRate * 3);
+        dl.setMaximumDelayInSamples(sampleRate * 3.1);
     }
 
     for (auto& s : smoothedDelay)
