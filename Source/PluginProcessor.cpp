@@ -28,6 +28,7 @@ SimpleDelayAudioProcessor::SimpleDelayAudioProcessor()
     feedback = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("feedback"));
     dryWet = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("dryWet"));
     link = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("link"));
+    wetAlgo = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("wetAlgo"));
 }
 
 SimpleDelayAudioProcessor::~SimpleDelayAudioProcessor()
@@ -224,8 +225,12 @@ void SimpleDelayAudioProcessor::createDelay(int channel, juce::dsp::DelayLine<fl
         auto delayedSample = filter.processSample(delayLine.popSample(channel, nextDelayTime));
         auto inDelay = std::tanh(input[i] + feedback->get() * delayedSample);
         delayLine.pushSample(channel, inDelay);
-        output[i] = (input[i] * (1 - dryWet->get())) + (delayedSample * dryWet->get());
-        //output[i] = std::tanh(input[i] + dryWet->get() * delayedSample);
+        if (wetAlgo->get()) {
+            output[i] = (input[i] * (1 - dryWet->get())) + (delayedSample * dryWet->get());
+        }
+        else {
+            output[i] = std::tanh(input[i] + dryWet->get() * delayedSample);
+        }
     }
 }
 
@@ -271,6 +276,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleDelayAudioProcessor::c
     layout.add(std::make_unique<AudioParameterFloat>("feedback", "Feedback", feedbackRange, .5));
     layout.add(std::make_unique<AudioParameterFloat>("dryWet", "Dry/Wet", dryWetRange, .5));
     layout.add(std::make_unique<AudioParameterBool>("link", "Link", true));
+    layout.add(std::make_unique<AudioParameterBool>("wetAlgo", "WetAlgo", false));
 
     return layout;
 }

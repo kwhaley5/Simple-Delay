@@ -77,6 +77,7 @@ private:
     juce::AudioParameterFloat* feedback{ nullptr };
     juce::AudioParameterFloat* dryWet{ nullptr };
     juce::AudioParameterBool* link{nullptr};
+    juce::AudioParameterBool* wetAlgo{nullptr};
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleDelayAudioProcessor)
 };

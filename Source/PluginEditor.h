@@ -103,6 +103,35 @@ public:
             //g.drawLine(bounds.getCentreX(), bounds.getCentreY(), thumbPoint.getX(), thumbPoint.getY(), lineW / 2)
 
         }
+
+        void drawToggleButton(juce::Graphics& g, juce::ToggleButton& button,
+            bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+        {
+            auto fontSize = juce::jmin(15.0f, (float)button.getHeight());
+            auto getFont = g.getCurrentFont();
+            auto rectWidth = getFont.getStringWidthFloat(button.getButtonText());
+
+            juce::Rectangle<float> r;
+            r.setSize(juce::jmax(20.f, rectWidth * 1.75f), fontSize * 1.2);
+            r.translate((button.getWidth() / 2 - rectWidth*.85f), (button.getHeight() / 2 - fontSize / 2 -1.f));
+
+
+            auto color = button.getToggleState() ? juce::Colour(64u, 194u, 230u) : juce::Colours::dimgrey;
+            g.setColour(color);
+            g.fillRoundedRectangle(r, fontSize/4);
+
+            auto bounds = r.toFloat();
+            g.setColour(juce::Colours::black);
+            g.drawRoundedRectangle(bounds.getCentreX() - bounds.getWidth()/2, bounds.getCentreY() - bounds.getHeight()/2, bounds.getWidth(), bounds.getHeight(), fontSize / 4, 2);
+
+            if (!button.isEnabled())
+                g.setOpacity(0.5f);
+
+            g.setColour(button.findColour(juce::ToggleButton::textColourId));
+            g.setFont(fontSize);
+            g.drawFittedText(button.getButtonText(), button.getLocalBounds(), juce::Justification::centred, 10);
+            
+        }
         
     };
 
@@ -156,10 +185,10 @@ private:
     LevelMeter outMeterR, outMeterL;
 
     juce::Slider freqLeft, freqRight, feedback, dryWet;
-    juce::ToggleButton link;
+    juce::ToggleButton link, wetAlgo;
 
     juce::AudioProcessorValueTreeState::SliderAttachment freqLeftAT, freqRightAT, feedbackAT, dryWetAT;
-    juce::AudioProcessorValueTreeState::ButtonAttachment linkAT;
+    juce::AudioProcessorValueTreeState::ButtonAttachment linkAT, wetAlgoAT;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleDelayAudioProcessorEditor)
 };
