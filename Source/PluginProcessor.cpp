@@ -105,13 +105,12 @@ void SimpleDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     spec.numChannels = getTotalNumOutputChannels();
     spec.sampleRate = sampleRate;
 
-    delayLine.reset();
-    delayLine.prepare(spec);
-    delayLine.setMaximumDelayInSamples(sampleRate*3);
-
-    delayLineRight.reset();
-    delayLineRight.prepare(spec);
-    delayLineRight.setMaximumDelayInSamples(sampleRate * 3);
+    for (auto& dl : delayLine)
+    {
+        dl.reset();
+        dl.prepare(spec);
+        dl.setMaximumDelayInSamples(sampleRate * 3);
+    }
 
     for (auto& s : smoothedDelay)
     {
@@ -178,8 +177,9 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    createDelay(0, delayLine, buffer);
-    createDelay(1, delayLineRight, buffer);
+    for (auto channel = 0; channel < buffer.getNumChannels(); ++channel)
+        createDelay(channel, delayLine[channel], buffer);
+
 
     rmsOutLevelLeft = juce::Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
     rmsOutLevelRight = juce::Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
@@ -200,14 +200,10 @@ void SimpleDelayAudioProcessor::createDelay(int channel, juce::dsp::DelayLine<fl
 
     if (channel == 0) {
         smoothedDelay[channel].setTargetValue((freqLeft->get() / 1000));
-        //delayTime = (freqLeft->get() / 1000) * getSampleRate();
     }
     else {
         smoothedDelay[channel].setTargetValue((freqRight->get() / 1000));
-        //delayTime = (freqRight->get() / 1000) * getSampleRate();
     }
-
-    //delayLine.setDelay(delayTime);
 
     auto& filter = filters[channel];
 

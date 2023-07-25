@@ -63,10 +63,9 @@ public:
 
 private:
 
-    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLine;
-    juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> delayLineRight;
+    std::array<juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear>, 2> delayLine;
     std::array<juce::dsp::IIR::Filter<float>, 2> filters;
-    std::array < juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>, 2> smoothedDelay;
+    std::array<juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>, 2> smoothedDelay;
 
     float rmsLevelLeft, rmsLevelRight, rmsOutLevelLeft, rmsOutLevelRight;
 
