@@ -281,3 +281,31 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new SimpleDelayAudioProcessor();
 }
+
+float SimpleDelayAudioProcessor::getRMSValue(int channel) //get function to provide the rms levels for the editor
+{
+    jassert(channel == 0 || channel == 1);
+    if (channel == 0) {
+        return rmsLevelLeft;
+    }
+    else if (channel == 1) {
+        return rmsLevelRight;
+    }
+    else {
+        return 0.0f;
+    }
+}
+
+float SimpleDelayAudioProcessor::getOutRMSValue(int channel) //same as above
+{
+    jassert(channel == 0 || channel == 1);
+    if (channel == 0) {
+        return rmsOutLevelLeft;
+    }
+    else if (channel == 1) {
+        return rmsOutLevelRight;
+    }
+    else {
+        return 0.0f;
+    }
+}

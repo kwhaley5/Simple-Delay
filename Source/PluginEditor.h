@@ -14,7 +14,7 @@
 //==============================================================================
 /**
 */
-class SimpleDelayAudioProcessorEditor  : public juce::AudioProcessorEditor
+class SimpleDelayAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
 {
 public:
     SimpleDelayAudioProcessorEditor (SimpleDelayAudioProcessor&);
@@ -23,6 +23,8 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+
+    void timerCallback();
 
     struct Laf : juce::LookAndFeel_V4 {
 

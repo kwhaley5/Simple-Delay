@@ -57,6 +57,9 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+
+    float getRMSValue(int channel);
+    float getOutRMSValue(int channel);
    
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "parameters", createParameterLayout() };
