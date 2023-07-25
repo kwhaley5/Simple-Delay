@@ -135,12 +135,6 @@ public:
         
     };
 
-    struct ButtonLink : public juce::ToggleButton, public juce::Button::Listener
-    {
-        void buttonClicked(juce::Button* button) override;
-
-    };
-
     struct LevelMeter : juce::Component
     {
         void paint(juce::Graphics& g) override
@@ -189,6 +183,7 @@ private:
 
     juce::AudioProcessorValueTreeState::SliderAttachment freqLeftAT, freqRightAT, feedbackAT, dryWetAT;
     juce::AudioProcessorValueTreeState::ButtonAttachment linkAT, wetAlgoAT;
+    juce::TooltipWindow toggle {this, 1000};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleDelayAudioProcessorEditor)
 };

@@ -7,8 +7,6 @@
 */
 
 /*TODO;
-* Create custom Link Button
-* Add Second button to allow for different wet algo
 * update value boxes
 * Add Logo and stuff
 */
@@ -24,7 +22,7 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor(SimpleDelayAudi
     wetAlgoAT(audioProcessor.apvts, "wetAlgo", wetAlgo)
 {
     setLookAndFeel(&laf);
-
+    
     addAndMakeVisible(meterL);
     addAndMakeVisible(meterR);
     addAndMakeVisible(outMeterL);
@@ -59,10 +57,12 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor(SimpleDelayAudi
         if (!wetAlgo.getToggleState())
         {
             wetAlgo.setButtonText("S&D");
+            wetAlgo.setTooltip("Dry/Wet Knob will increase the amount of the delayed signal only");
         }
         else
         {
             wetAlgo.setButtonText("DO");
+            wetAlgo.setTooltip("Dry/Wet Knob will increase the amount of the delayed signal and proportinally reduce original signal");
         }
     };
     
@@ -150,8 +150,6 @@ void SimpleDelayAudioProcessorEditor::paint (juce::Graphics& g)
 
 void SimpleDelayAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
 
     auto bounds = getLocalBounds();
 
@@ -211,9 +209,4 @@ void SimpleDelayAudioProcessorEditor::timerCallback()
 
     outMeterL.repaint();
     outMeterR.repaint();
-}
-
-void SimpleDelayAudioProcessorEditor::ButtonLink::buttonClicked(juce::Button* button)
-{
-
 }
