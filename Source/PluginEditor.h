@@ -100,9 +100,10 @@ public:
                 bounds.getCentreY() + (arcRadius - (arcRadius / rootTwo)) * std::sin(toAngle - MathConstants<float>::halfPi));
 
             g.drawLine(shortLine.getX(), shortLine.getY(), thumbPoint.getX(), thumbPoint.getY(), lineW / 2);
-            //g.drawLine(bounds.getCentreX(), bounds.getCentreY(), thumbPoint.getX(), thumbPoint.getY(), lineW / 2)
 
             //Add text Values
+            auto const fontSize = 15.f;
+
             auto str = String('none');
             auto value = slider.getValue();
             if (value < 1) {
@@ -112,6 +113,7 @@ public:
             }
             else {
                 str = String(value);
+                str.append(" ms", 5);
             }
 
             auto strWidth = g.getCurrentFont().getStringWidth(str);
@@ -122,19 +124,17 @@ public:
             r.setRight(boundsFull.getCentre().getX() + strWidth);
             r.setTop(boundsFull.getBottom() - 30);
 
-            //g.fillRoundedRectangle(r, 2);
-            g.setColour(Colours::red);
-            g.setFont(15);
+            g.setColour(Colours::whitesmoke);
+            g.setFont(fontSize);
             g.drawFittedText(str, r.getX(), r.getY(), r.getWidth(), r.getHeight(), juce::Justification::centred, 1);
 
             auto name = slider.getName();
             strWidth = g.getCurrentFont().getStringWidth(name);
-            r.setTop(5);
+            r.setTop(0);
             r.setLeft(boundsFull.getCentre().getX() - strWidth);
             r.setRight(boundsFull.getCentre().getX() + strWidth);
-            r.setBottom(25);
-            //g.fillRoundedRectangle(r, 2);
-            g.setColour(Colours::black);
+            r.setBottom(20);
+            g.setColour(Colours::whitesmoke);
             g.drawFittedText(name, r.getX(), r.getY(), r.getWidth(), r.getHeight(), juce::Justification::centred, 1);
             
 
@@ -209,8 +209,7 @@ public:
     };
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
+
     SimpleDelayAudioProcessor& audioProcessor;
 
     Laf laf;

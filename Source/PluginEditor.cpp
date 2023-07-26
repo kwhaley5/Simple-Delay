@@ -6,11 +6,6 @@
   ==============================================================================
 */
 
-/*TODO;
-* update value boxes
-* Add Logo and stuff
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -95,7 +90,7 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor(SimpleDelayAudi
 
     startTimerHz(24);
 
-    setSize (600, 400);
+    setSize (600, 450);
 }
 
 SimpleDelayAudioProcessorEditor::~SimpleDelayAudioProcessorEditor()
@@ -106,14 +101,13 @@ SimpleDelayAudioProcessorEditor::~SimpleDelayAudioProcessorEditor()
 //==============================================================================
 void SimpleDelayAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    //Time to relearn flexbox....
+    auto bounds = getLocalBounds();
+    auto grad = juce::ColourGradient::ColourGradient(juce::Colour(186u, 34u, 34u), bounds.toFloat().getTopRight(), juce::Colour(186u, 34u, 34u), bounds.toFloat().getBottomLeft(), false);
+    grad.addColour(.5f, juce::Colours::transparentBlack);
+    g.setGradientFill(grad);
 
-    g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
-    //g.drawFittedText("Hello", getLocalBounds(), juce::Justification::bottom, 1);
-
-    /*auto bounds = getLocalBounds();
+    g.fillAll ();
 
     auto inputMeter = bounds.removeFromLeft(bounds.getWidth() * .167);
     auto meterLSide = inputMeter.removeFromLeft(inputMeter.getWidth() * .5);
@@ -124,6 +118,10 @@ void SimpleDelayAudioProcessorEditor::paint (juce::Graphics& g)
     auto outMeterLSide = outputMeter.removeFromLeft(outputMeter.getWidth() * .5);
     outMeterL.setBounds(outMeterLSide);
     outMeterR.setBounds(outputMeter);
+
+    auto infoSpace = bounds.removeFromTop(bounds.getHeight() * .15);
+    auto logoSpace = infoSpace.removeFromLeft(bounds.getWidth() * .41);
+    auto textSpace = infoSpace.removeFromRight(bounds.getWidth() * .41);
 
     auto freqLeftBounds = bounds.removeFromLeft(bounds.getWidth() * .4);
     freqLeftBounds = freqLeftBounds.removeFromTop(bounds.getHeight() * .5);
@@ -141,15 +139,30 @@ void SimpleDelayAudioProcessorEditor::paint (juce::Graphics& g)
     bounds = getLocalBounds();
     bounds.removeFromLeft(bounds.getWidth() * .167);
     bounds.removeFromRight(bounds.getWidth() * .2);
+    bounds.removeFromTop(bounds.getHeight() * .15);
 
-    auto feedbackBounds = bounds.removeFromLeft(bounds.getWidth() * .5);
+    auto feedbackBounds = bounds.removeFromLeft(bounds.getWidth() * .4);
     feedbackBounds = feedbackBounds.removeFromBottom(bounds.getHeight() * .5);
     feedback.setBounds(feedbackBounds);
 
-    auto dryWetBounds = bounds.removeFromLeft(bounds.getWidth());
+    auto dryWetBounds = bounds.removeFromRight(bounds.getWidth() * .66);
     dryWetBounds = dryWetBounds.removeFromBottom(bounds.getHeight() * .5);
     dryWet.setBounds(dryWetBounds);
-    */
+
+    auto wetAlgoBounds = bounds.removeFromRight(bounds.getWidth());
+    wetAlgoBounds = wetAlgoBounds.removeFromBottom(bounds.getHeight() * .35);
+    wetAlgoBounds = wetAlgoBounds.removeFromTop(bounds.getHeight() * .15);
+    wetAlgo.setBounds(wetAlgoBounds);
+
+    auto logo = juce::ImageCache::getFromMemory(BinaryData::KITIK_LOGO_NO_BKGD_png, BinaryData::KITIK_LOGO_NO_BKGD_pngSize);
+    g.drawImage(logo, infoSpace.toFloat());
+
+    auto newFont = juce::Font(juce::Typeface::createSystemTypefaceFor(BinaryData::OFFSHORE_TTF, BinaryData::OFFSHORE_TTFSize));
+    g.setColour(juce::Colours::whitesmoke);
+    g.setFont(newFont);
+    g.setFont(30.f);
+    g.drawFittedText("Simple", logoSpace, juce::Justification::centredRight, 1);
+    g.drawFittedText("Delay", textSpace, juce::Justification::centredLeft, 1);
 }
 
 void SimpleDelayAudioProcessorEditor::resized()
@@ -167,6 +180,10 @@ void SimpleDelayAudioProcessorEditor::resized()
     outMeterL.setBounds(outMeterLSide);
     outMeterR.setBounds(outputMeter);
 
+    auto infoSpace = bounds.removeFromTop(bounds.getHeight() * .15);
+    auto logoSpace = infoSpace.removeFromLeft(bounds.getWidth() * .425);
+    auto textSpace = infoSpace.removeFromRight(bounds.getWidth() * .425);
+
     auto freqLeftBounds = bounds.removeFromLeft(bounds.getWidth() * .4);
     freqLeftBounds = freqLeftBounds.removeFromTop(bounds.getHeight() * .5);
     freqLeft.setBounds(freqLeftBounds);
@@ -183,6 +200,7 @@ void SimpleDelayAudioProcessorEditor::resized()
     bounds = getLocalBounds();
     bounds.removeFromLeft(bounds.getWidth() * .167);
     bounds.removeFromRight(bounds.getWidth() * .2);
+    bounds.removeFromTop(bounds.getHeight() * .15);
     
     auto feedbackBounds = bounds.removeFromLeft(bounds.getWidth() * .4);
     feedbackBounds = feedbackBounds.removeFromBottom(bounds.getHeight() * .5);

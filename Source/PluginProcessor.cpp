@@ -8,7 +8,6 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "Delay.h"
 
 //==============================================================================
 SimpleDelayAudioProcessor::SimpleDelayAudioProcessor()
@@ -100,7 +99,6 @@ void SimpleDelayAudioProcessor::changeProgramName (int index, const juce::String
 //==============================================================================
 void SimpleDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    //create the circular buffersize and assign it to the delaybuffer
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = getTotalNumOutputChannels();
@@ -243,12 +241,12 @@ bool SimpleDelayAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* SimpleDelayAudioProcessor::createEditor()
 {
     return new SimpleDelayAudioProcessorEditor (*this);
-    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
 void SimpleDelayAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
+    //Make sure to Save the filtergraph otherwise it will be the old state
     juce::MemoryOutputStream mos(destData, true);
     apvts.state.writeToStream(mos);
 }

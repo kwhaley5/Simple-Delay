@@ -4,6 +4,11 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="KiTiK Music"
               pluginVST3Category="Delay">
   <MAINGROUP id="tkWak1" name="SimpleDelay">
+    <GROUP id="{AA180015-9F8A-0B01-3232-ED85749BC530}" name="Assets">
+      <FILE id="Mpoxgi" name="OFFSHORE.TTF" compile="0" resource="1" file="../../../APPDATA/LOCAL/MICROSOFT/WINDOWS/FONTS/OFFSHORE.TTF"/>
+      <FILE id="tHVOS5" name="KITIK_LOGO_NO_BKGD.png" compile="0" resource="1"
+            file="../../Muisc/Pictures/KITIK_LOGO_NO_BKGD.png"/>
+    </GROUP>
     <GROUP id="{B0479E89-A9BD-9B2C-0966-429C8CDC1CDE}" name="Source">
       <FILE id="CYTwqu" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
@@ -12,8 +17,6 @@
       <FILE id="LFa5fk" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="n8J1aB" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
-      <FILE id="N3Dtb5" name="Delay.h" compile="0" resource="0" file="Source/Delay.h"/>
-      <FILE id="rVFXxt" name="Delay.cpp" compile="1" resource="0" file="Source/Delay.cpp"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
