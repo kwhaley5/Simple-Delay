@@ -266,8 +266,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleDelayAudioProcessor::c
     AudioProcessorValueTreeState::ParameterLayout layout;
 
     auto freqRange = NormalisableRange<float>(1, 3000, 1, 1);
-    auto feedbackRange = NormalisableRange<float>(.01, 1, .01, 1);
-    auto dryWetRange = NormalisableRange<float>(.01, 1, .01, 1);
+    auto feedbackRange = NormalisableRange<float>(0, 1, .01, 1);
+    auto dryWetRange = NormalisableRange<float>(0, 1, .01, 1);
 
     layout.add(std::make_unique<AudioParameterFloat>("freqLeft", "Frequency Left", freqRange, 50));
     layout.add(std::make_unique<AudioParameterFloat>("freqRight", "Frequency Right", freqRange, 50));
