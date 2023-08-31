@@ -104,7 +104,7 @@ void SimpleDelayAudioProcessorEditor::paint (juce::Graphics& g)
     //Time to relearn flexbox....
     auto bounds = getLocalBounds();
     auto grad = juce::ColourGradient::ColourGradient(juce::Colour(186u, 34u, 34u), bounds.toFloat().getTopRight(), juce::Colour(186u, 34u, 34u), bounds.toFloat().getBottomLeft(), false);
-    grad.addColour(.5f, juce::Colours::transparentBlack);
+    grad.addColour(.5f, juce::Colours::black);
     g.setGradientFill(grad);
 
     g.fillAll ();
